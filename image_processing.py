@@ -1,7 +1,10 @@
 #process images, open them and convert to b&w, partition them etc.
 
-from PIL import Image
-import math
+import cv2, numpy
+from PIL import Image, ImageDraw
+from scipy.ndimage.filters import rank_filter
+from collections import defaultdict
+import math, random, sys, os, json
 
 hwrite = Image.open( "./Digits/2.jpg" )
 black, white = (0,0,0), (255,255,255)
