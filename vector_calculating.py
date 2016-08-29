@@ -1,7 +1,6 @@
 #converts a black & white image to vector
 #compares two vectors and returns similarity, assuming same dimensions
 
-import matplotlib, cv2, numpy, hi
 from PIL import Image
 from image_processing import imB2W as b2w
 from image_processing import makeSize
