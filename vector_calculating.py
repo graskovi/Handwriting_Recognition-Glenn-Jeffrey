@@ -1,12 +1,21 @@
-#
-#
+#converts a black & white image to vector
+#compares two vectors and returns similarity, assuming same dimensions
 
+import matplotlib, cv2, numpy, hi
 from PIL import Image
-from image_processing import blackAndWhite as b2w
+from image_processing import imB2W as b2w
+from image_processing import makeSize
 import scipy.stats
 
-digit2 = Image.open("./Digits/2.jpg")
-digit1 = Image.open("./Digits/1.jpg")
+digitFirst = Image.open("./Digits/5.jpg")
+digitSecond = Image.open("./Digits/6.jpg")
+
+print type(digitFirst), type(digitSecond)
+
+digitFirst = b2w(digitFirst)
+digitSecond = b2w(digitSecond)
+
+print type(digitFirst), type(digitSecond)
 
 def vector(im):
     vect = []
@@ -21,10 +30,8 @@ def vector(im):
     return vect
 
 def compare(data_vect, digit_vect):
-    (pcc, pval) = scipy.stats.pearsonr(data_vect, digit_vect)
-    if (pval < 0.001):
-        return sys.maxint
-    return pcc/pval
+    return scipy.stats.pearsonr(data_vect, digit_vect)[0]
 
 if __name__ == "__main__":
-    print scipy.stats.pearsonr(vector(digit2), vector(digit1))
+    print scipy.stats.pearsonr(vector(digitFirst), vector(digitSecond))
+    print compare(vector(digitFirst), vector(digitSecond))

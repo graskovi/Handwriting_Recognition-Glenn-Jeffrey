@@ -1,6 +1,7 @@
 #process images, open them and convert to b&w, partition them etc.
 
 from PIL import Image
+import math
 
 hwrite = Image.open( "./Digits/2.jpg" )
 black, white = (0,0,0), (255,255,255)
@@ -21,12 +22,16 @@ def blackAndWhite(im, thresh):
                     im.putpixel((x,y), black)
                 else:
                     im.putpixel((x,y), white)
-    im.show()
+    return im
 
 def imB2W(im_digit):
-    blackAndWhite(im_digit, 100)
+    return blackAndWhite(im_digit, 100)
 
-'''def linePartition(im, (x1,y1), (x2,y2)):
-    for '''
+def makeSize(im):
+    return im.resize((231,299))
+    
 
-blackAndWhite(hwrite, 700) #Sample threshold, will need to be dynamic
+"""def linePartition(im, (x1,y1), (x2,y2)):
+    for """
+
+"""blackAndWhite(hwrite, 700) #Sample threshold, will need to be dynamic"""
