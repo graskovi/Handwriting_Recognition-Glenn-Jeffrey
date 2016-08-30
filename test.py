@@ -6,6 +6,7 @@ from skimage import img_as_ubyte
 from skimage import data
 from skimage.filters.rank import median, mean
 from skimage.morphology import disk
+from scipy.ndimage.morphology import grey_dilation as greydil
 
 """hwrite = img_as_ubyte(Image.open('handwriting.jpg'))
 #hist = np.histogram(noisy_image, bins=np.arange(0, 256))
@@ -25,7 +26,7 @@ ax.set_adjustable('box-forced')
 ax.imshow(median(hwrite, disk(1)), vmin=0, vmax=255, cmap=plt.cm.gray)
 ax.set_title('Cleaner')
 ax.axis('off')
-ax.set_adjustable('box-forced')"""
+ax.set_adjustable('box-forced')
 
 noisy_image = img_as_ubyte(Image.open('handwriting.jpg'))
 
@@ -41,7 +42,7 @@ for x in range(new_im.size[0]):
 
 new_im.show()
 
-"""fig, (ax1, ax2) = plt.subplots(1, 2, figsize=[10, 7], sharex=True, sharey=True)
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=[10, 7], sharex=True, sharey=True)
 
 med = median(noisy_image, disk(2))
 
@@ -56,3 +57,12 @@ ax2.axis('off')
 ax2.set_adjustable('box-forced')
 
 plt.show()"""
+
+im = Image.open('handwriting.jpg')
+im.show()
+im_orig = np.asarray(im)
+print im_orig
+im_orig = greydil(im_orig)
+im_new = Image.fromarray(np.uint8(im_orig))
+im_new.show()
+
