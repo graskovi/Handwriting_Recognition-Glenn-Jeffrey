@@ -226,6 +226,7 @@ def process_image(path):
     
     text_im = im.crop(crop)
     text_im.show()
+    return text_im
 
 
 if __name__ == '__main__':
