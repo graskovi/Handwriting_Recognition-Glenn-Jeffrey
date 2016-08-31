@@ -1,4 +1,4 @@
-#process images, open them and convert to b&w, partition them etc.
+#processes/partitions images
 
 import cv2
 from PIL import Image, ImageDraw
@@ -101,6 +101,7 @@ def find_components(edges, max_components=16):
         dilated_image = dilate(edges, N=3, iterations=n)
         contours, hierarchy = cv2.findContours(dilated_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         count = len(contours)
+        print 'count',count
     return contours
 
 
@@ -138,7 +139,7 @@ def find_optimal_components_subset(contours, edges):
             remaining_frac = c['sum'] / (total - covered_sum)
             new_area_frac = 1.0 * crop_area(new_crop) / crop_area(crop) - 1
             if new_f1 > f1 or (
-                    remaining_frac > 0.25 and new_area_frac < 0.15):
+                remaining_frac > 0.25 and new_area_frac < 0.15):
                 print '%d %s -> %s / %s (%s), %s -> %s / %s (%s), %s -> %s' % (
                         i, covered_sum, new_sum, total, remaining_frac,
                         crop_area(crop), crop_area(new_crop), area, new_area_frac,
@@ -193,24 +194,8 @@ def pad_crop(crop, contours, edges, border_contour, pad_px=15):
         return crop
 
 
-"""def downscale_image(im, max_dim=2048):
-    #Shrink im until its longest dimension is <= max_dim.
-    #Returns new_image, scale (where scale <= 1).
-
-    a, b = im.size
-    if max(a, b) <= max_dim:
-        return 1.0, im
-
-    scale = 1.0 * max_dim / max(a, b)
-    new_im = im.resize((int(a * scale), int(b * scale)), Image.ANTIALIAS)
-    return scale, new_im"""
-
-
 def process_image(path):
-    #orig_im = Image.open(path)
     im = Image.open(path)
-    #scale, im = downscale_image(orig_im)
-
     edges = cv2.Canny(np.asarray(im), 100, 200)
 
     # TODO: dilate image _before_ finding a border. This is crazy sensitive!
@@ -239,45 +224,11 @@ def process_image(path):
     crop = find_optimal_components_subset(contours, edges)
     crop = pad_crop(crop, contours, edges, border_contour)
     
-    #crop = [int(x / scale) for x in crop]  # upscale to the original image size.
-    
-    #text_im = orig_im.crop(crop)
     text_im = im.crop(crop)
     text_im.show()
 
-#Code below is mine, doesn't work well
-"""black, white = (0,0,0), (255,255,255)
-
-def blackAndWhite(im, thresh):
-    if type(im.getpixel((0,0))) == int:
-        for x in range(im.size[0]):
-            for y in range(im.size[1]):
-                if im.getpixel((x,y)) <= thresh/3:
-                    im.putpixel((x,y), 0)
-                else:
-                    im.putpixel((x,y), 255)
-    else:
-        for x in range(im.size[0]):
-            for y in range(im.size[1]):
-                (r,g,b) = im.getpixel((x,y))
-                if r+g+b <= thresh:
-                    im.putpixel((x,y), black)
-                else:
-                    im.putpixel((x,y), white)
-    return im
-
-def imB2W(im_digit):
-    return blackAndWhite(im_digit, 100)
-
-def makeSize(im):
-    return im.resize((231,299))
-
-def clean(im):
-    im = img_as_ubyte(im)
-    im = median(im, disk(1))
-    im.show()"""
-
 
 if __name__ == '__main__':
-    Image.open('handwriting.jpg').show()
-    process_image('handwriting.jpg')
+    path = 'squished-handwriting.jpg'
+    Image.open(path).show()
+    process_image(path)
