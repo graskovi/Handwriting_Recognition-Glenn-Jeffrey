@@ -4,9 +4,10 @@ import cv2
 from PIL import Image, ImageDraw
 import numpy as np
 from scipy.ndimage.filters import rank_filter
+from experimental_code import get_text_candidates
 
 
-def dilate(ary, N, iterations): 
+def dilate(ary, N, iterations): #returns np.ndarray
     """Dilate using an NxN '+' sign shape. ary is np.uint8."""
     kernel = np.zeros((N,N), dtype=np.uint8)
     kernel[(N-1)/2,:] = 1
@@ -18,7 +19,7 @@ def dilate(ary, N, iterations):
     return dilated_image
 
 
-def props_for_contours(contours, ary):
+def props_for_contours(contours, ary): #returns list with info below
     """Calculate bounding box & the number of set pixels for each contour."""
     c_info = []
     for c in contours:
@@ -48,12 +49,12 @@ def intersect_crops(crop1, crop2):
     return max(x11, x12), max(y11, y12), min(x21, x22), min(y21, y22)
 
 
-def crop_area(crop):
+def crop_area(crop): #returns int giving area of crop
     x1, y1, x2, y2 = crop
     return max(0, x2 - x1) * max(0, y2 - y1)
 
 
-def find_border_components(contours, ary):
+def find_border_components(contours, ary): #returns list
     borders = []
     area = ary.shape[0] * ary.shape[1]
     for i, c in enumerate(contours):
@@ -84,11 +85,10 @@ def remove_border(contour, ary):
         x1, y1, x2, y2 = cv2.boundingRect(contour)
         cv2.rectangle(c_im, (x1, y1), (x2, y2), 255, -1)
         cv2.rectangle(c_im, (x1, y1), (x2, y2), 0, 4)
-
     return np.minimum(c_im, ary)
 
 
-def find_components(edges, max_components=16):
+def find_components(edges, max_components=16): #returns list
     """Dilate the image until there are just a few connected components.
     Returns contours for these components."""
     # Perform increasingly aggressive dilation until there are just a few
@@ -101,7 +101,6 @@ def find_components(edges, max_components=16):
         dilated_image = dilate(edges, N=3, iterations=n)
         contours, hierarchy = cv2.findContours(dilated_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         count = len(contours)
-        print 'count',count
     return contours
 
 
@@ -225,11 +224,18 @@ def process_image(path):
     crop = pad_crop(crop, contours, edges, border_contour)
     
     text_im = im.crop(crop)
-    text_im.show()
     return text_im
+
+
+def find_char(path):
+    crop_im = process_image(path)
+    
+    return 'stub'
 
 
 if __name__ == '__main__':
     path = 'squished-handwriting.jpg'
     Image.open(path).show()
-    process_image(path)
+    cropped_image = process_image(path)
+    cropped_image.show()
+    #get_text_candidates(cropped_image)
