@@ -263,12 +263,15 @@ def get_char_pics(path): #MOST IMPORTANT FUNCTION
 #################################################################################
 
 if __name__ == '__main__':
-    path = 'squished-handwriting.jpg' # cursive makes code work strangely
+    path = 'number_set.jpg' # cursive makes code work strangely
     Image.open(path).show()
     cropped_image = process_image(path).convert('L')
+    cropped_image = cropped_image.resize\
+                    ((cropped_image.size[0]/3, cropped_image.size[1]/3),\
+                     Image.ANTIALIAS)
     cropped_image = darken(cropped_image)
     cropped_image.save("cropped_image", format="JPEG")
     Image.open("cropped_image").show()
     chars = get_chars("cropped_image")
-    """for i in range(10):
-        chars[i].show()"""
+    for i in range(2):
+        chars[i].show()
