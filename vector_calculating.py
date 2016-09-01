@@ -37,7 +37,7 @@ def compare(data_vect, digit_vect):
 #################################################################################
 
 def findNum(path):
-    '''returns the max correlation coefficient and the associated digit'''
+    '''returns the max pearsonr correlation coefficient and the associated digit'''
     
     vList = []
     

@@ -42,7 +42,6 @@ class UserData():
         rects = []
         
         image = restoration.denoise_tv_chambolle(self.image, weight=0.1)
-        print 'type',type(image)
         thresh = threshold_otsu(image)
         bw = closing(image > thresh, square(2))
         cleared = bw.copy()
@@ -81,7 +80,7 @@ def get_chars(path):
     rects = user.plot_preprocessed_image()
     chars = []
     for rect in rects:
-        chars.append( hwrite.crop(tuple(rect)).resize((100,100),resample=Image.BICUBIC) )
+        chars.append( hwrite.crop(tuple(rect)).resize((28,28),resample=Image.BICUBIC) )
     return chars
 
 #################################################################################
