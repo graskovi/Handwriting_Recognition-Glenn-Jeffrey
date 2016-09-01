@@ -1,70 +1,111 @@
 import numpy as np
+from PIL import Image, ImageDraw
 from skimage.io import imread
 from skimage.filters import threshold_otsu
-from skimage.transform import resize
+from matplotlib import pyplot as plt
 from skimage.morphology import closing, square
 from skimage.measure import regionprops
 from skimage import restoration
 from skimage import measure
+from skimage.color import label2rgb
+import matplotlib.patches as mpatches
 
-def preprocess_image(im):
-        """
-        Denoises and increases contrast. 
-        """
-        im = imread(path, as_grey=True)
-        image = restoration.denoise_tv_chambolle(im, weight=0.1)
+#################################################################################
+
+class UserData():
+    """class in charge of dealing with User Image input.
+    the methods provided are finalized to process the image and return 
+    the text contained in it."""
+
+    def __init__(self, image_file):
+        
+        #reads the image provided by the user as grey scale and preprocesses it.
+        
+        self.image = imread(image_file, as_grey=True)
+        self.preprocess_image()
+
+#################################################################################
+
+    def preprocess_image(self):
+        '''Denoises and increases contrast.'''
+        image = restoration.denoise_tv_chambolle(self.image, weight=0.1)
         thresh = threshold_otsu(image)
-        im_bw = closing(image > thresh, square(2))
-        im = im_bw.copy()
-        return im
+        self.bw = closing(image > thresh, square(2))
+        self.cleared = self.bw.copy()
+        return self.cleared
 
-def get_text_candidates(path):
-    """identifies objects in the image. Gets contours, draws rectangles around them
-    and saves the rectangles as individual images."""
+#################################################################################
     
-    im_arr = imread(path, as_grey=True)
-    
-    label_image = measure.label(im_arr)   
-    borders = np.logical_xor(preprocess_image(im_arr), im_arr)
-    label_image[borders] = -1
-    
-    coordinates = []
-    i=0
+    def plot_preprocessed_image(self):
+        '''plots pre-processed image and returns crops of chars.'''
+
+        rects = []
         
-    for region in regionprops(label_image):
-        if region.area > 10:
-            minr, minc, maxr, maxc = region.bbox
-            margin = 3
-            minr, minc, maxr, maxc = minr-margin, minc-margin, maxr+margin, maxc+margin
-            roi = self.image[minr:maxr, minc:maxc]
-            if roi.shape[0]*roi.shape[1] == 0:
+        image = restoration.denoise_tv_chambolle(self.image, weight=0.1)
+        print 'type',type(image)
+        thresh = threshold_otsu(image)
+        bw = closing(image > thresh, square(2))
+        cleared = bw.copy()
+        
+        label_image = measure.label(cleared)
+        borders = np.logical_xor(bw, cleared)
+       
+        label_image[borders] = -1
+        image_label_overlay = label2rgb(label_image, image=image)
+        
+        fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(12, 12))
+        ax.imshow(image_label_overlay)
+        
+        for region in regionprops(label_image):
+            if region.area < 10:
                 continue
-            else:
-                if i==0:
-                    samples = resize(roi, (28,28))
-                    coordinates.append(region.bbox)
-                    i+=1
-                elif i==1:
-                    roismall = resize(roi, (28,28))
-                    samples = np.concatenate((samples[None,:,:], roismall[None,:,:]), axis=0)
-                    coordinates.append(region.bbox)
-                    i+=1
-                else:
-                    roismall = resize(roi, (28,28))
-                    samples = np.concatenate((samples[:,:,:], roismall[None,:,:]), axis=0)
-                    coordinates.append(region.bbox)
         
-    candidates = {
-                'fullscale': samples,          
-                'flattened': samples.reshape((samples.shape[0], -1)),
-                'coordinates': np.array(coordinates)
-                }
+            minr, minc, maxr, maxc = region.bbox
+            
+            rects.append([minc, minr, maxc, maxr]) #EXTREMELY IMPORTANT LINE
+            
+            rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
+                                      fill=False, edgecolor='red', linewidth=2)
+            ax.add_patch(rect)
         
-    print 'Images After Contour Detection'
-    print 'Fullscale: ', candidates['fullscale'].shape
-    print 'Flattened: ', candidates['flattened'].shape
-    print 'Contour Coordinates: ', candidates['coordinates'].shape
-    print '============================================================'
+        plt.show()
 
-    print candidates
-    return candidates
+        return rects
+
+#################################################################################
+
+def get_chars(path):
+    user = UserData(path)
+    hwrite = Image.open(path)
+    draw = ImageDraw.Draw(hwrite)
+    rects = user.plot_preprocessed_image()
+    chars = []
+    for rect in rects:
+        chars.append( hwrite.crop(tuple(rect)).resize((100,100),resample=Image.BICUBIC) )
+    return chars
+
+#################################################################################
+
+if __name__ == '__main__':
+    
+    # creates instance of class and loads image    
+    user = UserData('handwriting.jpg')
+    
+    # opens image and creates Class ImageDraw
+    hwrite = Image.open('handwriting.jpg')
+    draw = ImageDraw.Draw(hwrite)
+    
+    # plots preprocessed image and saves rectangles that contain chars in a list
+    rects = user.plot_preprocessed_image()
+
+    # creates list for images of chars
+    chars = []
+
+    # iterates through list of rects and draws them on PIL image
+    for rect in rects:
+            #draw.rectangle(rect, fill=None, outline='Black')
+            chars.append( hwrite.crop(tuple(rect)).resize((100,100),resample=Image.BICUBIC) )
+
+    # shows original image and image of sample cropped char
+    hwrite.show()
+    chars[0].show()

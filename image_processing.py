@@ -4,8 +4,21 @@ import cv2
 from PIL import Image, ImageDraw
 import numpy as np
 from scipy.ndimage.filters import rank_filter
-from experimental_code import get_text_candidates
+from experimental_code import get_chars
 
+#################################################################################
+
+def darken(im):
+    for x in range(im.size[0]):
+        for y in range(im.size[1]):
+            bright = im.getpixel((x,y))
+            if (bright > 235):
+                im.putpixel((x,y),255)
+            else:
+                im.putpixel((x,y),bright/3*2)
+    return im
+
+#################################################################################
 
 def dilate(ary, N, iterations): #returns np.ndarray
     """Dilate using an NxN '+' sign shape. ary is np.uint8."""
@@ -18,6 +31,7 @@ def dilate(ary, N, iterations): #returns np.ndarray
     dilated_image = cv2.dilate(dilated_image, kernel, iterations=iterations)
     return dilated_image
 
+#################################################################################
 
 def props_for_contours(contours, ary): #returns list with info below
     """Calculate bounding box & the number of set pixels for each contour."""
@@ -35,6 +49,7 @@ def props_for_contours(contours, ary): #returns list with info below
         })
     return c_info
 
+#################################################################################
 
 def union_crops(crop1, crop2):
     """Union two (x1, y1, x2, y2) rects."""
@@ -42,17 +57,20 @@ def union_crops(crop1, crop2):
     x12, y12, x22, y22 = crop2
     return min(x11, x12), min(y11, y12), max(x21, x22), max(y21, y22)
 
+#################################################################################
 
 def intersect_crops(crop1, crop2):
     x11, y11, x21, y21 = crop1
     x12, y12, x22, y22 = crop2
     return max(x11, x12), max(y11, y12), min(x21, x22), min(y21, y22)
 
+#################################################################################
 
 def crop_area(crop): #returns int giving area of crop
     x1, y1, x2, y2 = crop
     return max(0, x2 - x1) * max(0, y2 - y1)
 
+#################################################################################
 
 def find_border_components(contours, ary): #returns list
     borders = []
@@ -63,10 +81,12 @@ def find_border_components(contours, ary): #returns list
             borders.append((i, x, y, x + w - 1, y + h - 1))
     return borders
 
+#################################################################################
 
 def angle_from_right(deg):
     return min(deg % 90, 90 - (deg % 90))
 
+#################################################################################
 
 def remove_border(contour, ary):
     """Remove everything outside a border contour."""
@@ -87,6 +107,7 @@ def remove_border(contour, ary):
         cv2.rectangle(c_im, (x1, y1), (x2, y2), 0, 4)
     return np.minimum(c_im, ary)
 
+#################################################################################
 
 def find_components(edges, max_components=16): #returns list
     """Dilate the image until there are just a few connected components.
@@ -103,6 +124,7 @@ def find_components(edges, max_components=16): #returns list
         count = len(contours)
     return contours
 
+#################################################################################
 
 def find_optimal_components_subset(contours, edges):
     """Find a crop which strikes a good balance of coverage/compactness.
@@ -139,10 +161,10 @@ def find_optimal_components_subset(contours, edges):
             new_area_frac = 1.0 * crop_area(new_crop) / crop_area(crop) - 1
             if new_f1 > f1 or (
                 remaining_frac > 0.25 and new_area_frac < 0.15):
-                print '%d %s -> %s / %s (%s), %s -> %s / %s (%s), %s -> %s' % (
+                """print '%d %s -> %s / %s (%s), %s -> %s / %s (%s), %s -> %s' % (
                         i, covered_sum, new_sum, total, remaining_frac,
                         crop_area(crop), crop_area(new_crop), area, new_area_frac,
-                        f1, new_f1)
+                        f1, new_f1)"""
                 crop = new_crop
                 covered_sum = new_sum
                 del c_info[i]
@@ -154,6 +176,7 @@ def find_optimal_components_subset(contours, edges):
 
     return crop
 
+#################################################################################
 
 def pad_crop(crop, contours, edges, border_contour, pad_px=15):
     """Slightly expand the crop to get full contours.
@@ -183,7 +206,7 @@ def pad_crop(crop, contours, edges, border_contour, pad_px=15):
         int_area = crop_area(intersect_crops(crop, this_crop))
         new_crop = crop_in_border(union_crops(crop, this_crop))
         if 0 < int_area < this_area and crop != new_crop:
-            print '%s -> %s' % (str(crop), str(new_crop))
+            #print '%s -> %s' % (str(crop), str(new_crop))
             changed = True
             crop = new_crop
 
@@ -192,6 +215,7 @@ def pad_crop(crop, contours, edges, border_contour, pad_px=15):
     else:
         return crop
 
+#################################################################################
 
 def process_image(path):
     im = Image.open(path)
@@ -226,16 +250,25 @@ def process_image(path):
     text_im = im.crop(crop)
     return text_im
 
+#################################################################################
 
-def find_char(path):
-    crop_im = process_image(path)
-    
-    return 'stub'
+def get_char_pics(path): #MOST IMPORTANT FUNCTION
+    '''Takes path of image and returns 28x28 char pics in image'''
+    Image.open(path).show()
+    cropped_image = process_image(path).convert('L')
+    cropped_image = darken(cropped_image)
+    cropped_image.save("cropped_image", format="JPEG")
+    return get_chars("cropped_image")
 
+#################################################################################
 
 if __name__ == '__main__':
-    path = 'squished-handwriting.jpg'
+    path = 'handwriting.jpg'
     Image.open(path).show()
-    cropped_image = process_image(path)
-    cropped_image.show()
-    #get_text_candidates(cropped_image)
+    cropped_image = process_image(path).convert('L')
+    cropped_image = darken(cropped_image)
+    cropped_image.save("cropped_image", format="JPEG")
+    Image.open("cropped_image").show()
+    chars = get_chars("cropped_image")
+    for i in range(10):
+        chars[i].show()
