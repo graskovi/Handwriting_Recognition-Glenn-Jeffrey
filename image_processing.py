@@ -4,7 +4,7 @@ import cv2
 from PIL import Image, ImageDraw
 import numpy as np
 from scipy.ndimage.filters import rank_filter
-from experimental_code import get_chars
+from char_partition import get_chars
 
 #################################################################################
 
