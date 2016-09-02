@@ -46,13 +46,13 @@ class UserData():
         cleared = bw.copy()
         
         label_image = measure.label(cleared)
-        borders = np.logical_xor(bw, cleared)
+        #borders = np.logical_xor(bw, cleared)
        
-        label_image[borders] = -1
-        image_label_overlay = label2rgb(label_image, image=image)
+        #label_image[borders] = -1
+        #image_label_overlay = label2rgb(label_image, image=image)
         
-        fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(12, 12))
-        ax.imshow(image_label_overlay)
+        #fig, ax = plt.subplots(ncols=1, nrows=1, figsize=(12, 12))
+        #ax.imshow(image_label_overlay)
         
         for region in regionprops(label_image):
             if region.area < 10:
@@ -69,14 +69,14 @@ class UserData():
             
             rects.append([minc, minr, maxc, maxr]) #EXTREMELY IMPORTANT LINE, [x1, y1, x2, y2]
             
-            rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
-                                      fill=False, edgecolor='red', linewidth=2)
-            ax.add_patch(rect)
+            #rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr,
+                                      #fill=False, edgecolor='red', linewidth=2)
+            #ax.add_patch(rect)
         
-        plt.show()
+        #plt.show()
 
         def is_nested(rects, i, j):
-            return rects[j][0] >= rects[i][0] and rects[j][2] <= rects[i][2] and rects[j][1] >= rects[i][1] and rects[j][3] <= rects[i][3]
+            return (rects[j][0] >= rects[i][0] and rects[j][2] <= rects[i][2] and rects[j][1] >= rects[i][1] and rects[j][3] <= rects[i][3]) or (rects[j][0] <= rects[i][0] and rects[j][2] >= rects[i][2] and rects[j][1] <= rects[i][1] and rects[j][3] >= rects[i][3])
         
         # makes list of indices of nested rectangles in rects
         deletes = []
@@ -96,6 +96,7 @@ class UserData():
 #################################################################################
 
 def get_chars(path):
+    '''returns list of pics of chars'''
     user = UserData(path)
     hwrite = Image.open(path)
     draw = ImageDraw.Draw(hwrite)
@@ -129,5 +130,6 @@ if __name__ == '__main__':
 
     # shows original image and image of sample cropped char
     #hwrite.show()
-    for i in range(len(chars)):
-        chars[i].show()
+    #print 'made it'
+    #for i in range(len(chars)):
+        #chars[i].show()
