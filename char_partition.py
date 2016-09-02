@@ -75,11 +75,14 @@ class UserData():
         
         plt.show()
 
+        def is_nested(rects, i, j):
+            return rects[j][0] >= rects[i][0] and rects[j][2] <= rects[i][2] and rects[j][1] >= rects[i][1] and rects[j][3] <= rects[i][3]
+        
         # makes list of indices of nested rectangles in rects
         deletes = []
         for i in range(len(rects)-1):
             for j in range(i+1, len(rects)):
-                if (rects[j][0] >= rects[i][0] and rects[j][2] <= rects[i][2] and rects[j][1] >= rects[i][1] and rects[j][3] <= rects[i][3]):
+                if (is_nested(rects, i, j)):
                     deletes.append(j)
         # deletes nested rectangles in rects
         num_dels = 0
@@ -126,5 +129,5 @@ if __name__ == '__main__':
 
     # shows original image and image of sample cropped char
     #hwrite.show()
-    for i in range(0, len(chars), 5):
+    for i in range(len(chars)):
         chars[i].show()
