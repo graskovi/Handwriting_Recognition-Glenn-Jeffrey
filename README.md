@@ -2,4 +2,4 @@
 
 Created by Glenn Raskovich (graskovi) and Jeffrey Lee (jeff4elee).
 
-Adapted from and expanded on open-source projects from TODO.
+Expansion of open-source OCR-related projects from Github, modified to work in a pipeline.
